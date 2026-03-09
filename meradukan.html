@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>MadheshiyaFoods</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+
+body{
+font-family:Arial;
+margin:0;
+background:#fff3e0;
+text-align:center;
+}
+
+header{
+background:#ff5722;
+color:white;
+padding:20px;
+font-size:26px;
+}
+
+.menu{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+}
+
+.food{
+background:white;
+margin:10px;
+padding:15px;
+width:200px;
+border-radius:10px;
+box-shadow:0 0 10px gray;
+}
+
+.food img{
+width:100%;
+border-radius:10px;
+}
+
+button{
+background:#4CAF50;
+color:white;
+padding:10px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+margin:5px;
+}
+
+.orderbox{
+background:white;
+padding:20px;
+margin:20px auto;
+width:90%;
+max-width:420px;
+border-radius:10px;
+box-shadow:0 0 10px gray;
+}
+
+input,select{
+width:90%;
+padding:10px;
+margin:8px;
+border-radius:5px;
+border:1px solid gray;
+}
+
+.total{
+font-size:20px;
+color:#ff5722;
+font-weight:bold;
+}
+
+table{
+width:95%;
+margin:auto;
+border-collapse:collapse;
+background:white;
+}
+
+th,td{
+border:1px solid black;
+padding:8px;
+}
+
+.admin{
+display:none;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<header>
+
+MadheshiyaFoods  
+<br>
+<small>100% Trusted Home Delivery</small>
+
+</header>
+
+<h2>Food Menu</h2>
+
+<div class="menu">
+
+<div class="food">
+<img src="https://i.imgur.com/Xq6b8Gk.jpg">
+<h3>Biryani</h3>
+<p>₹120</p>
+<button onclick="selectFood('Biryani',120)">Order</button>
+</div>
+
+<div class="food">
+<img src="https://i.imgur.com/FU4Z5pG.jpg">
+<h3>Litti Chokha</h3>
+<p>₹80</p>
+<button onclick="selectFood('Litti Chokha',80)">Order</button>
+</div>
+
+<div class="food">
+<img src="https://i.imgur.com/7yUvePI.jpg">
+<h3>Egg Curry</h3>
+<p>₹70</p>
+<button onclick="selectFood('Egg Curry',70)">Order</button>
+</div>
+
+<div class="food">
+<img src="https://i.imgur.com/B3h4K9P.jpg">
+<h3>Fried Egg</h3>
+<p>₹40</p>
+<button onclick="selectFood('Fried Egg',40)">Order</button>
+</div>
+
+</div>
+
+<div class="orderbox">
+
+<h3>Order Details</h3>
+
+<input id="food" placeholder="Food">
+
+<input id="price" placeholder="Price">
+
+<input id="qty" placeholder="Quantity" oninput="calcTotal()">
+
+<div class="total" id="total">Total: ₹0</div>
+
+<input id="name" placeholder="Your Name">
+
+<input id="phone" placeholder="Phone Number">
+
+<input id="address" placeholder="Delivery Address">
+
+<select id="payment">
+
+<option>Cash On Delivery</option>
+<option>UPI Payment</option>
+
+</select>
+
+<img src="upi-qr.png" width="200">
+
+<input id="txn" placeholder="Transaction ID (if UPI paid)">
+
+<br>
+
+<button onclick="getLocation()">Share Location</button>
+
+<button onclick="sendOrder()">Place Order</button>
+
+<button onclick="openAdmin()">Admin Panel</button>
+
+</div>
+
+<div class="admin" id="admin">
+
+<h2>Admin Order Dashboard</h2>
+
+<table>
+
+<tr>
+<th>Food</th>
+<th>Qty</th>
+<th>Total</th>
+<th>Name</th>
+<th>Phone</th>
+<th>Address</th>
+<th>Txn</th>
+</tr>
+
+<tbody id="orders"></tbody>
+
+</table>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+
+var firebaseConfig={
+apiKey:"APIKEY",
+authDomain:"madheshiyafoods.firebaseapp.com",
+databaseURL:"https://madheshiyafoods-default-rtdb.firebaseio.com",
+};
+
+firebase.initializeApp(firebaseConfig);
+
+var db=firebase.database();
+
+function selectFood(food,price){
+
+document.getElementById("food").value=food
+document.getElementById("price").value=price
+calcTotal()
+
+}
+
+function calcTotal(){
+
+let price=document.getElementById("price").value
+let qty=document.getElementById("qty").value
+let total=price*qty
+
+document.getElementById("total").innerHTML="Total: ₹"+total
+
+}
+
+function getLocation(){
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+let lat=pos.coords.latitude
+let lon=pos.coords.longitude
+
+document.getElementById("address").value=
+"https://maps.google.com/?q="+lat+","+lon
+
+})
+
+}
+
+function sendOrder(){
+
+let food=document.getElementById("food").value
+let price=document.getElementById("price").value
+let qty=document.getElementById("qty").value
+let name=document.getElementById("name").value
+let phone=document.getElementById("phone").value
+let address=document.getElementById("address").value
+let payment=document.getElementById("payment").value
+let txn=document.getElementById("txn").value
+
+let total=price*qty
+
+let orderData={food,qty,total,name,phone,address,txn}
+
+db.ref("orders").push(orderData)
+
+let msg=
+"New Order %0A"+
+"Food:"+food+"%0A"+
+"Qty:"+qty+"%0A"+
+"Total:"+total+"%0A"+
+"Name:"+name+"%0A"+
+"Phone:"+phone+"%0A"+
+"Address:"+address+"%0A"+
+"Payment:"+payment+"%0A"+
+"Txn:"+txn
+
+let url="https://wa.me/919219484069?text="+msg
+
+window.open(url)
+
+}
+
+function openAdmin(){
+
+let pass=prompt("Enter Admin Password")
+
+if(pass=="1234"){
+
+document.getElementById("admin").style.display="block"
+
+db.ref("orders").on("value",(snap)=>{
+
+let data=snap.val()
+let html=""
+
+for(let id in data){
+
+let o=data[id]
+
+html+=`
+<tr>
+<td>${o.food}</td>
+<td>${o.qty}</td>
+<td>${o.total}</td>
+<td>${o.name}</td>
+<td>${o.phone}</td>
+<td>${o.address}</td>
+<td>${o.txn}</td>
+</tr>
+`
+
+}
+
+document.getElementById("orders").innerHTML=html
+
+})
+
+}
+
+}
+
+</script>
+
+</body>
+
+</html>
